@@ -1,4 +1,4 @@
-import datetime as date
+from datetime import datetime
 from http_constants import *
 
 
@@ -22,8 +22,7 @@ class Response:
         self.status_text = status_text or HTTP_CODES_TEXT[status_code]
         self.body = None
         self.headers = [Header(*header) for header in self.default_headers]
-        self.addHeader(
-            'Date', date.datetime.utcnow().strftime("%a, %d %b %Y %H:%M:%S GMT"))
+        self.addHeader('Date', datetime.utcnow().strftime("%a, %d %b %Y %H:%M:%S GMT"))
 
     def addHeader(self, name, value):
         self.headers.append(Header(name, value))

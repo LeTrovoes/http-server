@@ -1,3 +1,4 @@
+from datetime import datetime
 import os
 import os.path
 import socket as sc
@@ -34,9 +35,9 @@ def read_file(path: str) -> bytes:
     return buffer
 
 
-def get_file_last_modified(path: str) -> date:
+def get_file_last_modified(path: str):
     lastmodified = os.stat(path).st_mtime
-    lastmodified = date.datetime.utcfromtimestamp(lastmodified)
+    lastmodified = datetime.utcfromtimestamp(lastmodified)
     return lastmodified
 
 
