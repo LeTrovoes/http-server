@@ -4,6 +4,7 @@ import os
 import datetime as date
 from urllib.parse import urlparse
 import traceback
+from http_exceptions import *
 
 PUBLIC_DIRECTORY = './public'
 
@@ -37,13 +38,10 @@ def does_path_exists(path: str) -> bool:
 
 
 def read_file(path: str) -> bytes:
-    # buffer = ''
     with open(path, 'rb') as f:
         buffer = f.read()
-        # for line in f:
-            # buffer += line
-
     return buffer
+
 
 def get_file_last_modified(path: str) -> date:
     lastmodified = os.stat(path).st_mtime
@@ -101,23 +99,6 @@ class OkResponse(Response):  # o arquivo já vai vir junto com a resposta? ou a 
     def __init__(self):
         super().__init__(200)
 
-
-class BadRequestResponse(Response):
-    def __init__(self):
-        super().__init__(400)
-
-
-class NotFoundResponse(Response):
-    def __init__(self):
-        super().__init__(404)
-
-
-class MethodNotAllowedResponse(Response):
-    def __init__(self):
-        super().__init__(405)
-        self.addHeader('Allow', ', '.join(ALLOWED_METHODS))
-
-
 class OptionResponse(Response):
     def __init__(self):
         super().__init__(200)
@@ -128,7 +109,7 @@ class InternalServerErrorResponse(Response):
     def __init__(self):
         super().__init__(500)
 
-# https://developer.mozilla.org/pt-BR/docs/Web/HTTP/Basico_sobre_HTTP/MIME_types
+
 def get_mime_type(file_type):
     file_type = file_type.lower()
     if file_type == 'html':
@@ -138,20 +119,30 @@ def get_mime_type(file_type):
     else:
         return 'text/plain'
 
+
 def handleHTTPVersion(version):
     if version.upper() != 'HTTP/1.1':
-        return BadRequestResponse()
+        raise BadRequestException()
+
+
+def handleMethod(method):
+    method = method.upper()
+
+    if method not in HTTP_METHODS:
+        raise BadRequestException()
+
+    if method not in ALLOWED_METHODS:
+        raise MethodNotAllowedException()
+
+    return method
 
 
 def handleRequest(req) -> Response:
-    method, target, version, *rest = req.decode().split()       #n tratamos se o texto do version tá certo ou n, é em badrequest certo?
-    method = method.upper()
+    method, target, version, *rest = req.decode().split()
 
-    if method not in HTTP_METHODS:  #olhar version
-        return BadRequestResponse()
+    handleHTTPVersion(version)
 
-    if method not in ALLOWED_METHODS:
-        return MethodNotAllowedResponse()
+    method = handleMethod(method)
 
     if method == 'OPTIONS':
         return OptionResponse()
@@ -166,6 +157,7 @@ def handleRequest(req) -> Response:
     file_type = path.split('.')[-1]
     mime_type = get_mime_type(file_type)
     res = OkResponse()
+
     if method == 'GET':
         res.setBody(content, mime_type, last_modified)
 
@@ -176,7 +168,6 @@ def handleConnection(conn, addr):
     req = conn.recv(8192)  # TODO: better handling
     try:
         res = handleRequest(req).getMessage()
-        # https://docs.python.org/2/library/traceback.html
     except Exception as e:
         print(e)
         traceback.print_stack(e)
@@ -185,9 +176,8 @@ def handleConnection(conn, addr):
     conn.send(res)
     conn.close()
 
-# encodar só o header
 
-if __name__ ==  '__main__':
+if __name__ == '__main2__':
     socket = sc.socket(sc.AF_INET, sc.SOCK_STREAM)
     socket.bind(('', SERVER_PORT))
     socket.listen(1)
@@ -195,6 +185,4 @@ if __name__ ==  '__main__':
     print('Server is listening at port', SERVER_PORT)
 
     while True:
-        conn, addr = socket.accept()
-        handleConnection(conn, addr)
-
+        handleConnection(socket.accept())
