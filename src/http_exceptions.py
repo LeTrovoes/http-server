@@ -1,13 +1,11 @@
-class HTTPException(Exception):
-    def __init__(self, status_code, status_text=None):
-        self.status_code = status_code
-        self.headers = []
+from http_response import Response
+from http_constants import ALLOWED_METHODS
 
-    def addHeader(self, name, value):
-        self.headers.append(Header(name, value))
+class HTTPException(Response, Exception):
+    def __init__(self, status_code):
+        Response.__init__(self, status_code)
 
 
-# 4XX Exceptions
 class BadRequestException(HTTPException):
     def __init__(self):
         super().__init__(400)
@@ -22,3 +20,8 @@ class MethodNotAllowedException(HTTPException):
     def __init__(self):
         super().__init__(405)
         self.addHeader('Allow', ', '.join(ALLOWED_METHODS))
+
+
+class InternalServerErrorException(HTTPException):
+    def __init__(self):
+        super().__init__(500)
