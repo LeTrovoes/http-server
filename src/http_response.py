@@ -27,12 +27,20 @@ class Response:
     def addHeader(self, name, value):
         self.headers.append(Header(name, value))
 
-    def setBody(self, content, contentType='application/octet-stream', lastmodified=None):
+    def setContentHeaders(
+        self,
+        content_type: str = 'application/octet-stream',
+        content_length: int = 0,
+        last_modified = None
+    ):
+        self.addHeader('Content-Type', content_type)
+        self.addHeader('Content-Length', str(content_length))
+        if last_modified:
+            self.addHeader('Last Modified', last_modified.strftime("%a, %d %b %Y %H:%M:%S GMT"))
+
+    def setBody(self, content, content_type, last_modified):
         self.body = content
-        self.addHeader('Content-Type', contentType)
-        self.addHeader('Content-Length', str(len(self.body)))
-        if lastmodified:
-            self.addHeader('Last Modified', lastmodified.strftime("%a, %d %b %Y %H:%M:%S GMT"))
+        self.setContentHeaders(content_type, len(self.body), last_modified)
 
     def getMessage(self) -> bytes:
         message = "HTTP/1.1 %d %s\n" % (self.status_code, self.status_text)

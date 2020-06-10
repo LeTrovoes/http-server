@@ -41,6 +41,10 @@ def get_file_last_modified(path: str):
     return lastmodified
 
 
+def get_file_size(path: str) -> int:
+    return os.path.getsize(path)
+
+
 def get_mime_type(file_type):
     file_type = file_type.lower()
     if file_type == 'html':
@@ -49,6 +53,30 @@ def get_mime_type(file_type):
         return 'image/png'
     else:
         return 'text/plain'
+
+
+def handleGET(path):
+    content = read_file(path)
+    last_modified = get_file_last_modified(path)
+    file_type = path.split('.')[-1]
+    mime_type = get_mime_type(file_type)
+    res = OkResponse()
+    res.setBody(content, mime_type, last_modified)
+    return res
+
+
+def handleHEAD(path):
+    file_type = path.split('.')[-1]
+    mime_type = get_mime_type(file_type)
+    file_size = get_file_size(path)
+    last_modified = get_file_last_modified(path)
+    res = OkResponse()
+    res.setContentHeaders(mime_type, file_size, last_modified)
+    return res
+
+
+def handleOPTIONS(path):
+    return OptionResponse()
 
 
 def handleHTTPVersion(version):
@@ -74,24 +102,17 @@ def handleRequest(req) -> Response:
     handleHTTPVersion(version)
 
     method = handleMethod(method)
-
-    if method == 'OPTIONS':
-        return OptionResponse()
-
     path = get_path_from_target(target)
 
     if not does_path_exists(path):
         raise NotFoundException()
 
-    content = read_file(path)
-    last_modified = get_file_last_modified(path)
-    file_type = path.split('.')[-1]
-    mime_type = get_mime_type(file_type)
-    res = OkResponse()
-
-    # TODO: return content headers
-    if method == 'GET':
-        res.setBody(content, mime_type, last_modified)
+    if method == HTTP_METHODS['GET']:
+        res = handleGET(path)
+    elif method == HTTP_METHODS['HEAD']:
+        res = handleHEAD(path)
+    elif method == HTTP_METHODS['OPTIONS']:
+        res = handleOPTIONS(path)
 
     return res
 
