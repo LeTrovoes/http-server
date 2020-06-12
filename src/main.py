@@ -78,7 +78,7 @@ def handleGET(path):
 
 
 def handleHEAD(path):
-    '''Generates an OK response with only the file information'''
+    '''Generates an OK response containing only the headers regarding the file's information'''
     file_type = path.split('.')[-1]
     mime_type = get_mime_type(file_type)
     file_size = get_file_size(path)
@@ -139,7 +139,7 @@ def handleRequest(req) -> Response:
     MethodNotAllowedException
         A response for the case that the HTTP request verb isn't supported by the server
     NotFoundException
-        A response for the case that the searched file isn't present on the provided path
+        A response for the case that the requested file isn't present on the provided path
     '''
 
     method, target, version, *rest = req.decode().split()
@@ -165,10 +165,11 @@ def handleRequest(req) -> Response:
 def handleConnection(conn, addr):
     '''Receives the HTTP request and send an appropriated response
 
-    Receive an message of limited size, tries to perform the action desired by the
-    client and sends the response.
+    Receive an message of limited size, tries to perform the action desired by
+    the client and sends the response
 
-    If any error was found during the process, send an notifying response to the client
+    If any error is found during the process, it sends an notifying response to
+    the client instead
 
     After handling the request, closes the connection with the client
     '''
