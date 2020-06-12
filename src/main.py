@@ -11,10 +11,21 @@ from http_exceptions import *
 
 PUBLIC_DIRECTORY = './public'
 
+# Selects the port the server will be initialized
+# The value is defined based on the value PORT on the environment variables
+# This could be done on initialization as in the follow example:
+#   'PORT=2000 python3 src/main.py'
+# If not provided defaults to 3000
 SERVER_PORT = int(os.environ['PORT']) if 'PORT' in os.environ else 3000
 
 
 def get_path_from_target(target: str) -> str:
+    '''Get the path from the target provided
+
+    Separates the path from the target and add it to the default public directory location.
+    If the path is only '/' returns the path from the default page index.html
+    '''
+
     path = urlparse(target).path
     path = path.strip('/')
 
@@ -56,6 +67,7 @@ def get_mime_type(file_type):
 
 
 def handleGET(path):
+    '''Generates an OK response with the file on the body and its information headers'''
     content = read_file(path)
     last_modified = get_file_last_modified(path)
     file_type = path.split('.')[-1]
@@ -66,6 +78,7 @@ def handleGET(path):
 
 
 def handleHEAD(path):
+    '''Generates an OK response with only the file information'''
     file_type = path.split('.')[-1]
     mime_type = get_mime_type(file_type)
     file_size = get_file_size(path)
@@ -76,15 +89,35 @@ def handleHEAD(path):
 
 
 def handleOPTIONS(path):
+    '''Generates a response with all possible HTTP verbs for the provided path'''
     return OptionResponse()
 
 
 def handleHTTPVersion(version):
+    '''Checks if the HTTP version provided is the 1.1 as it is the only supported by the server
+
+    Raises
+    ------
+    BadRequestException
+        A response for the case that the HTTP request doesn't follows the expected format
+    '''
+
     if version.upper() != 'HTTP/1.1':
         raise BadRequestException()
 
 
 def handleMethod(method):
+    '''Checks if the HTTP method provided is valid and supported by the server
+
+    Raises
+    ------
+    BadRequestException
+        A response for the case that the HTTP request doesn't follows the expected format
+    MethodNotAllowedException
+        A response for the case that the HTTP request verb isn't supported by the server
+
+    '''
+
     method = method.upper()
 
     if method not in HTTP_METHODS:
@@ -97,6 +130,18 @@ def handleMethod(method):
 
 
 def handleRequest(req) -> Response:
+    '''Generates an appropriated response for the provided request
+
+    Raises
+    ------
+    BadRequestException
+        A response for the case that the HTTP request doesn't follows the expected format
+    MethodNotAllowedException
+        A response for the case that the HTTP request verb isn't supported by the server
+    NotFoundException
+        A response for the case that the searched file isn't present on the provided path
+    '''
+
     method, target, version, *rest = req.decode().split()
 
     handleHTTPVersion(version)
@@ -118,6 +163,16 @@ def handleRequest(req) -> Response:
 
 
 def handleConnection(conn, addr):
+    '''Receives the HTTP request and send an appropriated response
+
+    Receive an message of limited size, tries to perform the action desired by the
+    client and sends the response.
+
+    If any error was found during the process, send an notifying response to the client
+
+    After handling the request, closes the connection with the client
+    '''
+
     print(f'Handling connection from {addr[0]}')
     req = conn.recv(8192)  # TODO: better handling
     try:
