@@ -191,10 +191,14 @@ def handleConnection(conn, addr):
 if __name__ == '__main__':
     socket = sc.socket(sc.AF_INET, sc.SOCK_STREAM)
     socket.bind(('', SERVER_PORT))
+    # number of the requests that awaits on the stack for a connection
     socket.listen(1)
 
     print('Server is listening at port', SERVER_PORT)
 
+    # Awaits until a client requests to make a connection with the server
+    # Then, creates a connection and calls the function that handles the
+    # client's HTTP message
     while True:
         conn, addr = socket.accept()
         handleConnection(conn, addr)
