@@ -173,15 +173,18 @@ def handleConnection(conn, addr):
 
     After handling the request, closes the connection with the client
     '''
-
-    print(f'Handling connection from {addr[0]}')
-    req = conn.recv(8192)  # TODO: better handling
+    try:
+        print(f'Handling connection from {addr[0]}')
+        req = conn.recv(8192)  # TODO: better handling
+    except Exception:
+        conn.close()
+        return
     try:
         res = handleRequest(req).getMessage()
     except HTTPException as http_exception:
         res = http_exception.getMessage()
-    except Exception as e:
-        traceback.print_stack(e)
+    except Exception:
+        traceback.print_exc()
         res = 'HTTP/1.1 500 Internal Server Error\n'.encode()
 
     conn.send(res)
@@ -201,4 +204,7 @@ if __name__ == '__main__':
     # client's HTTP message
     while True:
         conn, addr = socket.accept()
+        # Sets the interval in seconds that the connection will await for
+        # data to be sent
+        conn.settimeout(1.0)
         handleConnection(conn, addr)
