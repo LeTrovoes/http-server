@@ -173,9 +173,11 @@ def handleConnection(conn, addr):
 
     After handling the request, closes the connection with the client
     '''
-
-    print(f'Handling connection from {addr[0]}')
-    req = conn.recv(8192)  # TODO: better handling
+    try:
+        print(f'Handling connection from {addr[0]}')
+        req = conn.recv(8192)  # TODO: better handling
+    except Exception:
+        return
     try:
         res = handleRequest(req).getMessage()
     except HTTPException as http_exception:
@@ -201,4 +203,5 @@ if __name__ == '__main__':
     # client's HTTP message
     while True:
         conn, addr = socket.accept()
+        conn.settimeout(1.0)
         handleConnection(conn, addr)
