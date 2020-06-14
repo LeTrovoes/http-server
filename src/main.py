@@ -177,6 +177,7 @@ def handleConnection(conn, addr):
         print(f'Handling connection from {addr[0]}')
         req = conn.recv(8192)  # TODO: better handling
     except Exception:
+        conn.close()
         return
     try:
         res = handleRequest(req).getMessage()
