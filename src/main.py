@@ -180,8 +180,8 @@ def handleConnection(conn, addr):
         res = handleRequest(req).getMessage()
     except HTTPException as http_exception:
         res = http_exception.getMessage()
-    except Exception as e:
-        traceback.print_stack(e)
+    except Exception:
+        traceback.print_exc()
         res = 'HTTP/1.1 500 Internal Server Error\n'.encode()
 
     conn.send(res)
