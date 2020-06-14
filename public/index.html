@@ -1,9 +1,28 @@
 <!DOCTYPE html>
 <html>
 <head>
-    <title>It Works</title>
+    <meta http-equiv="content-type" content="text/html; charset=utf-8" />
+
+    <title>Index</title>
+
+    <link rel="stylesheet" href="styles.css">
 </head>
 <body>
-    That's cool
+    <div class="content">
+        <h1 id="title">Welcome to Web Server</h1>
+    
+        <form class="form" onsubmit="searchFile(event)">
+            <input id="file" type="text" placeholder="Input filename" />
+            <button type="submit">Search</button>
+        </form>
+    </div>
 </body>
+
+<script>
+    function searchFile(event) {
+        event.preventDefault();
+        var file = document.getElementById('file').value;
+        window.open(window.location.href + file, '_self');
+    }
+</script>
 </html>
