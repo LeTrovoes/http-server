@@ -203,5 +203,7 @@ if __name__ == '__main__':
     # client's HTTP message
     while True:
         conn, addr = socket.accept()
+        # Sets the interval in seconds that the connection will await for
+        # data to be sent
         conn.settimeout(1.0)
         handleConnection(conn, addr)
