@@ -62,6 +62,8 @@ def get_mime_type(file_type):
         return 'text/html'
     elif file_type == 'png':
         return 'image/png'
+    elif file_type == 'css':
+        return 'text/css'
     else:
         return 'text/plain'
 
